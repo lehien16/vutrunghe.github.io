@@ -196,9 +196,9 @@
       careerCount[career]++;
       updateStats();
 
-      // Gửi dữ liệu nghề nghiệp lên server
+      // Gửi dữ liệu nghề nghiệp lên Google Apps Script
       try {
-        await fetch('/api/career', {
+        await fetch('https://script.google.com/macros/s/AKfycbzDzhnsx8X4CP_v2CiDY_qctIXIhfb1qk3umyLeY8jsjhzl7dSrZWT_HeV3fSXAqS6eoA/exec', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -209,7 +209,7 @@
           }),
         });
       } catch (error) {
-        console.error('Lỗi khi gửi dữ liệu lên server', error);
+        console.error('Lỗi khi gửi dữ liệu lên Google Apps Script', error);
       }
 
       document.getElementById('binaryInput').value = '';
