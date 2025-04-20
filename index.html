@@ -18,6 +18,7 @@
       align-items: center;
       flex-direction: column;
     }
+    
     .container {
       display: flex;
       justify-content: space-between;
@@ -25,16 +26,19 @@
       max-width: 1300px;
       height: 80vh;
     }
+
     .input-and-stats {
       width: 300px;
       margin-right: 20px;
     }
+
     .universe-container {
       flex-grow: 1;
       position: relative;
       height: 100%;
       margin-top: 40px;
     }
+
     #center-star {
       position: absolute;
       width: 120px;
@@ -51,6 +55,7 @@
       font-weight: bold;
       font-size: 14px;
     }
+
     .orbit-path {
       position: absolute;
       width: 400px;
@@ -61,6 +66,7 @@
       top: 50%;
       transform: translate(-50%, -50%);
     }
+
     .orbit-star {
       position: absolute;
       width: 100px;
@@ -75,10 +81,12 @@
       font-size: 11px;
       animation: orbit 20s linear infinite;
     }
+
     @keyframes orbit {
       0% { transform: rotate(0deg) translateX(200px) rotate(0deg); }
       100% { transform: rotate(360deg) translateX(200px) rotate(-360deg); }
     }
+
     .starfield {
       position: absolute;
       width: 100%;
@@ -87,6 +95,7 @@
       left: 0;
       z-index: -1;
     }
+
     .star {
       position: absolute;
       width: 2px;
@@ -95,13 +104,16 @@
       border-radius: 50%;
       opacity: 0.8;
     }
+
     .input-group {
       margin: 20px 0;
     }
+
     .input-group input, .input-group button {
       padding: 10px;
       font-size: 16px;
     }
+
     #stats {
       margin-top: 30px;
       text-align: left;
@@ -115,10 +127,12 @@
       max-height: 400px;
       overflow-y: auto;
     }
+
     #stats ul {
       list-style: none;
       padding-left: 0;
     }
+
     #stats li {
       margin: 5px 0;
     }
@@ -136,6 +150,7 @@
       <h2>📊 Thống kê nghề nghiệp</h2>
       <div id="stats"></div>
     </div>
+
     <div class="universe-container">
       <div class="starfield" id="starfield"></div>
       <div id="center-star">🌞<br>Trung tâm</div>
@@ -154,8 +169,7 @@
     }
 
     let orbitIndex = 0;
-
-    function addStar() {
+    async function addStar() {
       const binaryInput = document.getElementById('binaryInput').value.trim();
       if (!binaryInput) return;
 
@@ -177,24 +191,35 @@
       universe.appendChild(star);
       orbitIndex++;
 
-      // Gửi dữ liệu về server
-      fetch('http://localhost:3000/api/career', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ binary: binaryInput, career: career })
-      }).catch(err => console.error('Lỗi gửi dữ liệu về server:', err));
-
       // Cập nhật thống kê
       if (!careerCount[career]) careerCount[career] = 0;
       careerCount[career]++;
       updateStats();
+
+      // Gửi dữ liệu nghề nghiệp lên server
+      try {
+        await fetch('/api/career', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            binary: binaryInput,
+            career: career
+          }),
+        });
+      } catch (error) {
+        console.error('Lỗi khi gửi dữ liệu lên server', error);
+      }
 
       document.getElementById('binaryInput').value = '';
     }
 
     function updateStats() {
       let total = 0;
-      for (const count of Object.values(careerCount)) total += count;
+      for (const count of Object.values(careerCount)) {
+        total += count;
+      }
 
       let html = '<ul>';
       for (const career in careerCount) {
