@@ -233,7 +233,10 @@
         const data = await response.json();
         for (const item of data) {
           renderStar(item.binary, item.career);
+          if (!careerCount[item.career]) careerCount[item.career] = 0;
+          careerCount[item.career]++;
         }
+        updateStats();
       } catch (error) {
         console.error('Lỗi khi tải dữ liệu từ Google Apps Script', error);
       }
