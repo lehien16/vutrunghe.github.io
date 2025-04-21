@@ -18,7 +18,6 @@
       align-items: center;
       flex-direction: column;
     }
-    
     .container {
       display: flex;
       justify-content: space-between;
@@ -26,19 +25,16 @@
       max-width: 1300px;
       height: 80vh;
     }
-
     .input-and-stats {
       width: 300px;
       margin-right: 20px;
     }
-
     .universe-container {
       flex-grow: 1;
       position: relative;
       height: 100%;
       margin-top: 40px;
     }
-
     #center-star {
       position: absolute;
       width: 120px;
@@ -55,7 +51,6 @@
       font-weight: bold;
       font-size: 14px;
     }
-
     .orbit-path {
       position: absolute;
       width: 400px;
@@ -66,7 +61,6 @@
       top: 50%;
       transform: translate(-50%, -50%);
     }
-
     .orbit-star {
       position: absolute;
       width: 100px;
@@ -81,12 +75,10 @@
       font-size: 11px;
       animation: orbit 20s linear infinite;
     }
-
     @keyframes orbit {
       0% { transform: rotate(0deg) translateX(200px) rotate(0deg); }
       100% { transform: rotate(360deg) translateX(200px) rotate(-360deg); }
     }
-
     .starfield {
       position: absolute;
       width: 100%;
@@ -95,7 +87,6 @@
       left: 0;
       z-index: -1;
     }
-
     .star {
       position: absolute;
       width: 2px;
@@ -104,16 +95,13 @@
       border-radius: 50%;
       opacity: 0.8;
     }
-
     .input-group {
       margin: 20px 0;
     }
-
     .input-group input, .input-group button {
       padding: 10px;
       font-size: 16px;
     }
-
     #stats {
       margin-top: 30px;
       text-align: left;
@@ -127,12 +115,10 @@
       max-height: 400px;
       overflow-y: auto;
     }
-
     #stats ul {
       list-style: none;
       padding-left: 0;
     }
-
     #stats li {
       margin: 5px 0;
     }
@@ -163,25 +149,42 @@
     const universe = document.getElementById('universe');
     const stats = document.getElementById('stats');
     const careerCount = {};
+    let orbitIndex = 0;
 
     function binaryToText(binary) {
       return binary.trim().split(' ').map(b => String.fromCharCode(parseInt(b, 2))).join('');
     }
 
-    let orbitIndex = 0;
     async function addStar() {
       const binaryInput = document.getElementById('binaryInput').value.trim();
       if (!binaryInput) return;
 
       const career = binaryToText(binaryInput);
+      renderStar(binaryInput, career);
+
+      // Gửi dữ liệu nghề nghiệp lên Google Apps Script
+      try {
+        await fetch('https://script.google.com/macros/s/AKfycbw1xN9VOlNTqr8WwC6dzCqV6nmJibm3yhftUAJLqbjb2RpgbKqfcPBBNhmFv0f4mmMY1g/exec', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ binary: binaryInput, career: career }),
+        });
+      } catch (error) {
+        console.error('Lỗi khi gửi dữ liệu lên Google Apps Script', error);
+      }
+
+      document.getElementById('binaryInput').value = '';
+    }
+
+    function renderStar(binaryInput, career) {
       const star = document.createElement('div');
       star.className = 'orbit-star';
       star.innerHTML = `<strong>${career}</strong><br><small>${binaryInput}</small>`;
 
       const delay = Math.random() * 20;
       const duration = 15 + Math.random() * 10;
-      const distance = 120 + (orbitIndex % 5) * 40;
-
       star.style.animation = `orbit ${duration}s linear infinite`;
       star.style.transformOrigin = `0 0`;
       star.style.animationDelay = `${delay}s`;
@@ -191,28 +194,9 @@
       universe.appendChild(star);
       orbitIndex++;
 
-      // Cập nhật thống kê
       if (!careerCount[career]) careerCount[career] = 0;
       careerCount[career]++;
       updateStats();
-
-      // Gửi dữ liệu nghề nghiệp lên Google Apps Script
-      try {
-        await fetch('https://script.google.com/macros/s/AKfycbw1xN9VOlNTqr8WwC6dzCqV6nmJibm3yhftUAJLqbjb2RpgbKqfcPBBNhmFv0f4mmMY1g/exec', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            binary: binaryInput,
-            career: career
-          }),
-        });
-      } catch (error) {
-        console.error('Lỗi khi gửi dữ liệu lên Google Apps Script', error);
-      }
-
-      document.getElementById('binaryInput').value = '';
     }
 
     function updateStats() {
@@ -243,12 +227,10 @@
 
     generateStars(150);
 
-        // Khi trang được mở, tải lại dữ liệu nghề đã lưu
     window.onload = async function () {
       try {
         const response = await fetch('https://script.google.com/macros/s/AKfycbw1xN9VOlNTqr8WwC6dzCqV6nmJibm3yhftUAJLqbjb2RpgbKqfcPBBNhmFv0f4mmMY1g/exec');
         const data = await response.json();
-        
         for (const item of data) {
           renderStar(item.binary, item.career);
         }
@@ -256,31 +238,6 @@
         console.error('Lỗi khi tải dữ liệu từ Google Apps Script', error);
       }
     };
-    
-    // Hàm hiển thị lại ngôi sao và thống kê
-    function renderStar(binaryInput, career) {
-      const star = document.createElement('div');
-      star.className = 'orbit-star';
-      star.innerHTML = `<strong>${career}</strong><br><small>${binaryInput}</small>`;
-    
-      const delay = Math.random() * 20;
-      const duration = 15 + Math.random() * 10;
-      const distance = 120 + (orbitIndex % 5) * 40;
-    
-      star.style.animation = `orbit ${duration}s linear infinite`;
-      star.style.transformOrigin = `0 0`;
-      star.style.animationDelay = `${delay}s`;
-      star.style.left = '50%';
-      star.style.top = '50%';
-    
-      universe.appendChild(star);
-      orbitIndex++;
-    
-      if (!careerCount[career]) careerCount[career] = 0;
-      careerCount[career]++;
-      updateStats();
-    }
-
   </script>
 </body>
 </html>
